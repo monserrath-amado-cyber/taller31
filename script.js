@@ -25,3 +25,13 @@ function dibujarLinea(x0, y0, x1, y1, color) {
     ctx.lineTo(x1, y1);
     ctx.stroke();
 }
+const DENTRO = 0, IZQUIERDA = 1, DERECHA = 2, ABAJO = 4, ARRIBA = 8;
+
+function obtenerCodigo(x, y, v) {
+    let codigo = DENTRO;
+    if (x < v.xMin) codigo |= IZQUIERDA;
+    else if (x > v.xMax) codigo |= DERECHA;
+    if (y < v.yMin) codigo |= ABAJO;
+    else if (y > v.yMax) codigo |= ARRIBA;
+    return codigo;
+}
