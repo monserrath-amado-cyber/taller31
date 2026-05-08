@@ -12,3 +12,16 @@ const lineas = [
 ];
 
 let escenaActual = 0;
+// Funciones de dibujo 
+function dibujarViewport(v) {
+    ctx.strokeStyle = 'blue';
+    ctx.strokeRect(v.xMin, v.yMin, v.xMax - v.xMin, v.yMax - v.yMin);
+}
+
+function dibujarLinea(x0, y0, x1, y1, color) {
+    ctx.strokeStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+}
