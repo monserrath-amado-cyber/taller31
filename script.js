@@ -80,3 +80,14 @@ function renderizar() {
         }
     });
 }
+document.getElementById('btnSiguiente').onclick = () => { escenaActual = (escenaActual + 1) % 5; renderizar(); };
+document.getElementById('btnAnterior').onclick = () => { escenaActual = (escenaActual - 1 + 5) % 5; renderizar(); };
+document.getElementById('btnActualizar').onclick = () => {
+    ventana.xMin = parseInt(document.getElementById('x1').value);
+    ventana.yMin = parseInt(document.getElementById('y1').value);
+    ventana.xMax = parseInt(document.getElementById('x2').value);
+    ventana.yMax = parseInt(document.getElementById('y2').value);
+    renderizar();
+};
+
+renderizar(); // Iniciar la aplicación
