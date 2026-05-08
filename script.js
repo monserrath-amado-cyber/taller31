@@ -35,3 +35,48 @@ function obtenerCodigo(x, y, v) {
     else if (y > v.yMax) codigo |= ARRIBA;
     return codigo;
 }
+function cohenSutherland(x0, y0, x1, y1, v) {
+    let c0 = obtenerCodigo(x0, y0, v);
+    let c1 = obtenerCodigo(x1, y1, v);
+    let aceptada = false;
+
+    while (true) {
+        if (!(c0 | c1)) {
+            aceptada = true; break;
+        } else if (c0 & c1) {
+            break;
+        } else {
+            let x, y;
+            let cFuera = c0 ? c0 : c1;
+            if (cFuera & ARRIBA) {
+                x = x0 + (x1 - x0) * (v.yMax - y0) / (y1 - y0);
+                y = v.yMax;
+            } else if (cFuera & ABAJO) {
+                x = x0 + (x1 - x0) * (v.yMin - y0) / (y1 - y0);
+                y = v.yMin;
+            } else if (cFuera & DERECHA) {
+                y = y0 + (y1 - y0) * (v.xMax - x0) / (x1 - x0);
+                x = v.xMax;
+            } else if (cFuera & IZQUIERDA) {
+                y = y0 + (y1 - y0) * (v.xMin - x0) / (x1 - x0);
+                x = v.xMin;
+            }
+            if (cFuera === c0) { x0 = x; y0 = y; c0 = obtenerCodigo(x0, y0, v); }
+            else { x1 = x; y1 = y; c1 = obtenerCodigo(x1, y1, v); }
+        }
+    }
+    return aceptada ? { x0, y0, x1, y1 } : null;
+}
+function renderizar() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    dibujarViewport(ventana);
+    document.getElementById('txtEscena').innerText = `Escena: ${escenaActual + 1} de 5`;
+
+    lineas.forEach(l => {
+        if (escenaActual === 0) dibujarLinea(l.x0, l.y0, l.x1, l.y1, 'gray');
+        else {
+            let recortada = cohenSutherland(l.x0, l.y0, l.x1, l.y1, ventana);
+            if (recortada) dibujarLinea(recortada.x0, recortada.y0, recortada.x1, recortada.y1, 'red');
+        }
+    });
+}
