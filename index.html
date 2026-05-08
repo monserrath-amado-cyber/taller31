@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Taller 3-1: Cohen-Sutherland</title>
+    <title> Cohen-Sutherland</title>
     <style>
         body { font-family: sans-serif; padding: 20px; }
         .controles { margin-bottom: 15px; }
@@ -10,7 +10,7 @@
     </style>
 </head>
 <body>
-    <h2>TALLER 3-1: Cohen-Sutherland</h2>
+    <h2> Cohen-Sutherland</h2>
     <div class="controles">
         <strong>Ventana de recorte:</strong><br>
         x1: <input type="number" id="x1" value="100"> 
@@ -24,6 +24,14 @@
         <span id="txtEscena">Escena: 1 de 5</span>
         <button id="btnSiguiente">Siguiente</button>
     </div>
+    <div id="info-recorte" style="margin-top: 10px; font-family: sans-serif;">
+    <strong>Línea:</strong><br>
+    p1: <span id="p1-coord">--</span><br>
+    p2: <span id="p2-coord">--</span><br><br>
+    <strong>Recorte:</strong><br>
+    pc1: <span id="pc1-coord">--</span><br>
+    pc2: <span id="pc2-coord">--</span>
+</div>
     <canvas id="lienzo" width="500" height="400"></canvas>
     <script src="script.js"></script>
 </body>
