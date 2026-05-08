@@ -67,18 +67,48 @@ function cohenSutherland(x0, y0, x1, y1, v) {
     }
     return aceptada ? { x0, y0, x1, y1 } : null;
 }
+
 function renderizar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     dibujarViewport(ventana);
+    
+    // Actualizar texto de escena
     document.getElementById('txtEscena').innerText = `Escena: ${escenaActual + 1} de 5`;
 
-    lineas.forEach(l => {
-        if (escenaActual === 0) dibujarLinea(l.x0, l.y0, l.x1, l.y1, 'gray');
-        else {
-            let recortada = cohenSutherland(l.x0, l.y0, l.x1, l.y1, ventana);
-            if (recortada) dibujarLinea(recortada.x0, recortada.y0, recortada.x1, recortada.y1, 'red');
+    if (escenaActual === 0) {
+        // Escena 1: Mostrar todas las líneas originales
+        lineas.forEach(l => dibujarLinea(l.x0, l.y0, l.x1, l.y1, 'gray'));
+        limpiarInfo();
+    } else {
+        // Escenas 2-5: Mostrar una línea específica y sus datos
+        let l = lineas[escenaActual - 1]; // Seleccionamos la línea según la escena
+        
+        // Dibujamos la original en gris para referencia
+        dibujarLinea(l.x0, l.y0, l.x1, l.y1, '#e0e0e0'); 
+        
+        let recortada = cohenSutherland(l.x0, l.y0, l.x1, l.y1, ventana);
+        
+        // Mostrar coordenadas originales
+        document.getElementById('p1-coord').innerText = `(${l.x0}, ${l.y0})`;
+        document.getElementById('p2-coord').innerText = `(${l.x1}, ${l.y1})`;
+
+        if (recortada) {
+            dibujarLinea(recortada.x0, recortada.y0, recortada.x1, recortada.y1, 'red');
+            // Mostrar coordenadas de recorte
+            document.getElementById('pc1-coord').innerText = `(${Math.round(recortada.x0)}, ${Math.round(recortada.y0)})`;
+            document.getElementById('pc2-coord').innerText = `(${Math.round(recortada.x1)}, ${Math.round(recortada.y1)})`;
+        } else {
+            document.getElementById('pc1-coord').innerText = "Fuera de rango";
+            document.getElementById('pc2-coord').innerText = "Fuera de rango";
         }
-    });
+    }
+}
+
+function limpiarInfo() {
+    document.getElementById('p1-coord').innerText = "--";
+    document.getElementById('p2-coord').innerText = "--";
+    document.getElementById('pc1-coord').innerText = "--";
+    document.getElementById('pc2-coord').innerText = "--";
 }
 document.getElementById('btnSiguiente').onclick = () => { escenaActual = (escenaActual + 1) % 5; renderizar(); };
 document.getElementById('btnAnterior').onclick = () => { escenaActual = (escenaActual - 1 + 5) % 5; renderizar(); };
