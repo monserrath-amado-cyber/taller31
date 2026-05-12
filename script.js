@@ -31,9 +31,9 @@ const lineas = [
 
 let escenaActual = 0;
 // Funciones de dibujo 
-function dibujarViewport(v) {
+function dibujarViewport(ventanaRecorte) {
     ctx.strokeStyle = COLOR_VENTANA;
-    ctx.strokeRect(v.xMin, v.yMin, v.xMax - v.xMin, v.yMax - v.yMin);
+    ctx.strokeRect(ventanaRecorte.xMin, ventanaRecorte.yMin, ventanaRecorte.xMax - ventanaRecorte.xMin, ventanaRecorte.yMax - ventanaRecorte.yMin);
 }
 
 function dibujarLinea(x0, y0, x1, y1, color) {
@@ -47,44 +47,44 @@ function dibujarLinea(x0, y0, x1, y1, color) {
 //
 const DENTRO = 0, IZQUIERDA = 1, DERECHA = 2, ABAJO = 4, ARRIBA = 8;
 
-function obtenerCodigo(x, y, v) {
+function obtenerCodigo(x, y, ventanaRecorte) {
     let codigo = DENTRO;
-    if (x < v.xMin) codigo |= IZQUIERDA;
-    else if (x > v.xMax) codigo |= DERECHA;
-    if (y < v.yMin) codigo |= ABAJO;
-    else if (y > v.yMax) codigo |= ARRIBA;
+    if (x < ventanaRecorte.xMin) codigo |= IZQUIERDA;
+    else if (x > ventanaRecorte.xMax) codigo |= DERECHA;
+    if (y < ventanaRecorte.yMin) codigo |= ABAJO;
+    else if (y > ventanaRecorte.yMax) codigo |= ARRIBA;
     return codigo;
 }
 
-function cohenSutherland(x0, y0, x1, y1, v) {
-    let c0 = obtenerCodigo(x0, y0, v);
-    let c1 = obtenerCodigo(x1, y1, v);
+function cohenSutherland(x0, y0, x1, y1, ventanaRecorte) {
+    let codigoInicio = obtenerCodigo(x0, y0, ventanaRecorte);
+    let codigoFin = obtenerCodigo(x1, y1, ventanaRecorte);
     let aceptada = false;
 
     while (true) {
-        if (!(c0 | c1)) {
+        if (!(codigoInicio | codigoFin)) {
             aceptada = true; break;
-        } else if (c0 & c1) {
+        } else if (codigoInicio & codigoFin) {
             break;
         } else {
             let x, y;
-            let cFuera = c0 ? c0 : c1;
+            let cFuera = codigoInicio ? codigoInicio : codigoFin;
             if (cFuera & ARRIBA) {
-                x = x0 + (x1 - x0) * (v.yMax - y0) / (y1 - y0);
-                y = v.yMax;
+                x = x0 + (x1 - x0) * (ventanaRecorte.yMax - y0) / (y1 - y0);
+                y = ventanaRecorte.yMax;
             } else if (cFuera & ABAJO) {
-                x = x0 + (x1 - x0) * (v.yMin - y0) / (y1 - y0);
-                y = v.yMin;
+                x = x0 + (x1 - x0) * (ventanaRecorte.yMin - y0) / (y1 - y0);
+                y = ventanaRecorte.yMin;
             } else if (cFuera & DERECHA) {
-                y = y0 + (y1 - y0) * (v.xMax - x0) / (x1 - x0);
-                x = v.xMax;
+                y = y0 + (y1 - y0) * (ventanaRecorte.xMax - x0) / (x1 - x0);
+                x = ventanaRecorte.xMax;
             } else if (cFuera & IZQUIERDA) {
-                y = y0 + (y1 - y0) * (v.xMin - x0) / (x1 - x0);
-                x = v.xMin;
+                y = y0 + (y1 - y0) * (ventanaRecorte.xMin - x0) / (x1 - x0);
+                x = ventanaRecorte.xMin;
             }
 
-            if (cFuera === c0) { x0 = x; y0 = y; c0 = obtenerCodigo(x0, y0, v); }
-            else { x1 = x; y1 = y; c1 = obtenerCodigo(x1, y1, v); }
+            if (cFuera === codigoInicio) { x0 = x; y0 = y; codigoInicio = obtenerCodigo(x0, y0, ventanaRecorte); }
+            else { x1 = x; y1 = y; codigoFin = obtenerCodigo(x1, y1, ventanaRecorte); }
         }
     }
     return aceptada ? { x0, y0, x1, y1 } : null;
@@ -99,20 +99,20 @@ function renderizar() {
 
     if (escenaActual === 0) {
         // Escena 1: Mostrar todas las líneas originales
-        lineas.forEach(l => dibujarLinea(l.x0, l.y0, l.x1, l.y1, COLOR_LINEA));
+        lineas.forEach(linea => dibujarLinea(linea.x0, linea.y0, linea.x1, linea.y1, COLOR_LINEA));
         limpiarInfo();
     } else {
         // Escenas 2-TOTAL_ESCENAS: Mostrar una línea específica y sus datos
-        let l = lineas[escenaActual - 1]; // Seleccionamos la línea según la escena
+        let linea = lineas[escenaActual - 1]; // Seleccionamos la línea según la escena
 
         // Dibujamos la original en gris para referencia
-        dibujarLinea(l.x0, l.y0, l.x1, l.y1, COLOR_LINEA);
+        dibujarLinea(linea.x0, linea.y0, linea.x1, linea.y1, COLOR_LINEA);
 
-        let recortada = cohenSutherland(l.x0, l.y0, l.x1, l.y1, ventana);
+        let recortada = cohenSutherland(linea.x0, linea.y0, linea.x1, linea.y1, ventana);
 
         // Mostrar coordenadas originales
-        p1Coord.innerText = `(${l.x0}, ${l.y0})`;
-        p2Coord.innerText = `(${l.x1}, ${l.y1})`;
+        p1Coord.innerText = `(${linea.x0}, ${linea.y0})`;
+        p2Coord.innerText = `(${linea.x1}, ${linea.y1})`;
 
         if (recortada) {
             dibujarLinea(recortada.x0, recortada.y0, recortada.x1, recortada.y1, COLOR_RECORTE);
