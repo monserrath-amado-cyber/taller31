@@ -1,14 +1,16 @@
 const canvas = document.getElementById('lienzo');
 const ctx = canvas.getContext('2d');
 
+const TOTAL_ESCENAS = 5;
+
 let ventana = { xMin: 100, yMin: 100, xMax: 400, yMax: 300 };
 
 const lineas = [
     { x0: 150, y0: 150, x1: 350, y1: 250 },
-    { x0: 50,  y0: 150, x1: 200, y1: 150 },
-    { x0: 200, y0: 50,  x1: 250, y1: 350 },
-    { x0: 10,  y0: 10,  x1: 80,  y1: 80 },
-    { x0: 50,  y0: 50,  x1: 450, y1: 350 }
+    { x0: 50, y0: 150, x1: 200, y1: 150 },
+    { x0: 200, y0: 50, x1: 250, y1: 350 },
+    { x0: 10, y0: 10, x1: 80, y1: 80 },
+    { x0: 50, y0: 50, x1: 450, y1: 350 }
 ];
 
 let escenaActual = 0;
@@ -25,6 +27,8 @@ function dibujarLinea(x0, y0, x1, y1, color) {
     ctx.lineTo(x1, y1);
     ctx.stroke();
 }
+
+//
 const DENTRO = 0, IZQUIERDA = 1, DERECHA = 2, ABAJO = 4, ARRIBA = 8;
 
 function obtenerCodigo(x, y, v) {
@@ -39,6 +43,8 @@ function cohenSutherland(x0, y0, x1, y1, v) {
     let c0 = obtenerCodigo(x0, y0, v);
     let c1 = obtenerCodigo(x1, y1, v);
     let aceptada = false;
+
+    console.log(c0, c1);
 
     while (true) {
         if (!(c0 | c1)) {
@@ -61,6 +67,7 @@ function cohenSutherland(x0, y0, x1, y1, v) {
                 y = y0 + (y1 - y0) * (v.xMin - x0) / (x1 - x0);
                 x = v.xMin;
             }
+
             if (cFuera === c0) { x0 = x; y0 = y; c0 = obtenerCodigo(x0, y0, v); }
             else { x1 = x; y1 = y; c1 = obtenerCodigo(x1, y1, v); }
         }
@@ -71,23 +78,23 @@ function cohenSutherland(x0, y0, x1, y1, v) {
 function renderizar() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     dibujarViewport(ventana);
-    
+
     // Actualizar texto de escena
-    document.getElementById('txtEscena').innerText = `Escena: ${escenaActual + 1} de 5`;
+    document.getElementById('txtEscena').innerText = `Escena: ${escenaActual + 1} de ${TOTAL_ESCENAS}`;
 
     if (escenaActual === 0) {
         // Escena 1: Mostrar todas las líneas originales
         lineas.forEach(l => dibujarLinea(l.x0, l.y0, l.x1, l.y1, 'gray'));
         limpiarInfo();
     } else {
-        // Escenas 2-5: Mostrar una línea específica y sus datos
+        // Escenas 2-TOTAL_ESCENAS: Mostrar una línea específica y sus datos
         let l = lineas[escenaActual - 1]; // Seleccionamos la línea según la escena
-        
+
         // Dibujamos la original en gris para referencia
-        dibujarLinea(l.x0, l.y0, l.x1, l.y1, '#e0e0e0'); 
-        
+        dibujarLinea(l.x0, l.y0, l.x1, l.y1, '#e0e0e0');
+
         let recortada = cohenSutherland(l.x0, l.y0, l.x1, l.y1, ventana);
-        
+
         // Mostrar coordenadas originales
         document.getElementById('p1-coord').innerText = `(${l.x0}, ${l.y0})`;
         document.getElementById('p2-coord').innerText = `(${l.x1}, ${l.y1})`;
@@ -110,8 +117,8 @@ function limpiarInfo() {
     document.getElementById('pc1-coord').innerText = "--";
     document.getElementById('pc2-coord').innerText = "--";
 }
-document.getElementById('btnSiguiente').onclick = () => { escenaActual = (escenaActual + 1) % 5; renderizar(); };
-document.getElementById('btnAnterior').onclick = () => { escenaActual = (escenaActual - 1 + 5) % 5; renderizar(); };
+document.getElementById('btnSiguiente').onclick = () => { escenaActual = (escenaActual + 1) % TOTAL_ESCENAS; renderizar(); };
+document.getElementById('btnAnterior').onclick = () => { escenaActual = (escenaActual - 1 + TOTAL_ESCENAS) % TOTAL_ESCENAS; renderizar(); };
 document.getElementById('btnActualizar').onclick = () => {
     ventana.xMin = parseInt(document.getElementById('x1').value);
     ventana.yMin = parseInt(document.getElementById('y1').value);
