@@ -45,49 +45,67 @@ function dibujarLinea(x0, y0, x1, y1, color) {
 }
 
 //
-const DENTRO = 0, IZQUIERDA = 1, DERECHA = 2, ABAJO = 4, ARRIBA = 8;
+class CohenSutherlandClipper {
+    static DENTRO = 0;
+    static IZQUIERDA = 1;
+    static DERECHA = 2;
+    static ABAJO = 4;
+    static ARRIBA = 8;
 
-function obtenerCodigo(x, y, ventanaRecorte) {
-    let codigo = DENTRO;
-    if (x < ventanaRecorte.xMin) codigo |= IZQUIERDA;
-    else if (x > ventanaRecorte.xMax) codigo |= DERECHA;
-    if (y < ventanaRecorte.yMin) codigo |= ABAJO;
-    else if (y > ventanaRecorte.yMax) codigo |= ARRIBA;
-    return codigo;
-}
-
-function cohenSutherland(x0, y0, x1, y1, ventanaRecorte) {
-    let codigoInicio = obtenerCodigo(x0, y0, ventanaRecorte);
-    let codigoFin = obtenerCodigo(x1, y1, ventanaRecorte);
-    let aceptada = false;
-
-    while (true) {
-        if (!(codigoInicio | codigoFin)) {
-            aceptada = true; break;
-        } else if (codigoInicio & codigoFin) {
-            break;
-        } else {
-            let x, y;
-            let cFuera = codigoInicio ? codigoInicio : codigoFin;
-            if (cFuera & ARRIBA) {
-                x = x0 + (x1 - x0) * (ventanaRecorte.yMax - y0) / (y1 - y0);
-                y = ventanaRecorte.yMax;
-            } else if (cFuera & ABAJO) {
-                x = x0 + (x1 - x0) * (ventanaRecorte.yMin - y0) / (y1 - y0);
-                y = ventanaRecorte.yMin;
-            } else if (cFuera & DERECHA) {
-                y = y0 + (y1 - y0) * (ventanaRecorte.xMax - x0) / (x1 - x0);
-                x = ventanaRecorte.xMax;
-            } else if (cFuera & IZQUIERDA) {
-                y = y0 + (y1 - y0) * (ventanaRecorte.xMin - x0) / (x1 - x0);
-                x = ventanaRecorte.xMin;
-            }
-
-            if (cFuera === codigoInicio) { x0 = x; y0 = y; codigoInicio = obtenerCodigo(x0, y0, ventanaRecorte); }
-            else { x1 = x; y1 = y; codigoFin = obtenerCodigo(x1, y1, ventanaRecorte); }
-        }
+    constructor(ventana) {
+        this.ventana = ventana;
     }
-    return aceptada ? { x0, y0, x1, y1 } : null;
+
+    obtenerCodigo(x, y) {
+        let codigo = CohenSutherlandClipper.DENTRO;
+        if (x < this.ventana.xMin) codigo |= CohenSutherlandClipper.IZQUIERDA;
+        else if (x > this.ventana.xMax) codigo |= CohenSutherlandClipper.DERECHA;
+        if (y < this.ventana.yMin) codigo |= CohenSutherlandClipper.ABAJO;
+        else if (y > this.ventana.yMax) codigo |= CohenSutherlandClipper.ARRIBA;
+        return codigo;
+    }
+
+    recortar(x0, y0, x1, y1) {
+        let codigoInicio = this.obtenerCodigo(x0, y0);
+        let codigoFin = this.obtenerCodigo(x1, y1);
+        let aceptada = false;
+
+        while (true) {
+            if (!(codigoInicio | codigoFin)) {
+                aceptada = true;
+                break;
+            } else if (codigoInicio & codigoFin) {
+                break;
+            } else {
+                let x, y;
+                let cFuera = codigoInicio ? codigoInicio : codigoFin;
+                if (cFuera & CohenSutherlandClipper.ARRIBA) {
+                    x = x0 + (x1 - x0) * (this.ventana.yMax - y0) / (y1 - y0);
+                    y = this.ventana.yMax;
+                } else if (cFuera & CohenSutherlandClipper.ABAJO) {
+                    x = x0 + (x1 - x0) * (this.ventana.yMin - y0) / (y1 - y0);
+                    y = this.ventana.yMin;
+                } else if (cFuera & CohenSutherlandClipper.DERECHA) {
+                    y = y0 + (y1 - y0) * (this.ventana.xMax - x0) / (x1 - x0);
+                    x = this.ventana.xMax;
+                } else if (cFuera & CohenSutherlandClipper.IZQUIERDA) {
+                    y = y0 + (y1 - y0) * (this.ventana.xMin - x0) / (x1 - x0);
+                    x = this.ventana.xMin;
+                }
+
+                if (cFuera === codigoInicio) {
+                    x0 = x;
+                    y0 = y;
+                    codigoInicio = this.obtenerCodigo(x0, y0);
+                } else {
+                    x1 = x;
+                    y1 = y;
+                    codigoFin = this.obtenerCodigo(x1, y1);
+                }
+            }
+        }
+        return aceptada ? { x0, y0, x1, y1 } : null;
+    }
 }
 
 function renderizar() {
@@ -108,7 +126,8 @@ function renderizar() {
         // Dibujamos la original en gris para referencia
         dibujarLinea(linea.x0, linea.y0, linea.x1, linea.y1, COLOR_LINEA);
 
-        let recortada = cohenSutherland(linea.x0, linea.y0, linea.x1, linea.y1, ventana);
+        const clipper = new CohenSutherlandClipper(ventana);
+        let recortada = clipper.recortar(linea.x0, linea.y0, linea.x1, linea.y1);
 
         // Mostrar coordenadas originales
         p1Coord.innerText = `(${linea.x0}, ${linea.y0})`;
