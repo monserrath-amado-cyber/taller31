@@ -142,6 +142,17 @@ document.getElementById('btnActualizar').onclick = () => {
     ventana.yMin = parseInt(inputY1.value);
     ventana.xMax = parseInt(inputX2.value);
     ventana.yMax = parseInt(inputY2.value);
+
+    if (ventana.xMin >= ventana.xMax) {
+        alert("x1 debe ser menor que x2");
+        return;
+    }
+
+    if (ventana.yMin >= ventana.yMax) {
+        alert("y1 debe ser menor que y2");
+        return;
+    }
+
     renderizar();
 };
 
