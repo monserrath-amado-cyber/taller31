@@ -108,41 +108,61 @@ class CohenSutherlandClipper {
     }
 }
 
-function renderizar() {
+// Logica del recorte
+function obtenerDatosEscena() {
+    if (escenaActual === 0) return { lineasOriginales: lineas };
+
+    const lineaOriginal = lineas[escenaActual - 1];
+    const clipper = new CohenSutherlandClipper(ventana);
+    const lineaRecortada = clipper.recortar(lineaOriginal.x0, lineaOriginal.y0, lineaOriginal.x1, lineaOriginal.y1);
+
+    return { lineaOriginal, lineaRecortada };
+}
+
+// Dibujar
+function actualizarCanvas(datos) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     dibujarViewport(ventana);
 
-    // Actualizar texto de escena
+    if (escenaActual === 0) {
+        datos.lineasOriginales.forEach(linea =>
+            dibujarLinea(linea.x0, linea.y0, linea.x1, linea.y1, COLOR_LINEA)
+        );
+    } else {
+        const { lineaOriginal, lineaRecortada } = datos;
+        dibujarLinea(lineaOriginal.x0, lineaOriginal.y0, lineaOriginal.x1, lineaOriginal.y1, COLOR_LINEA);
+
+        if (lineaRecortada) {
+            dibujarLinea(lineaRecortada.x0, lineaRecortada.y0, lineaRecortada.x1, lineaRecortada.y1, COLOR_RECORTE);
+        }
+    }
+}
+
+// Actualizar la UI (HTML)
+function actualizarUI(datos) {
     txtEscena.innerText = `Escena: ${escenaActual + 1} de ${TOTAL_ESCENAS}`;
 
     if (escenaActual === 0) {
-        // Escena 1: Mostrar todas las líneas originales
-        lineas.forEach(linea => dibujarLinea(linea.x0, linea.y0, linea.x1, linea.y1, COLOR_LINEA));
         limpiarInfo();
     } else {
-        // Escenas 2-TOTAL_ESCENAS: Mostrar una línea específica y sus datos
-        let linea = lineas[escenaActual - 1]; // Seleccionamos la línea según la escena
+        const { lineaOriginal, lineaRecortada } = datos;
+        p1Coord.innerText = `(${lineaOriginal.x0}, ${lineaOriginal.y0})`;
+        p2Coord.innerText = `(${lineaOriginal.x1}, ${lineaOriginal.y1})`;
 
-        // Dibujamos la original en gris para referencia
-        dibujarLinea(linea.x0, linea.y0, linea.x1, linea.y1, COLOR_LINEA);
-
-        const clipper = new CohenSutherlandClipper(ventana);
-        let recortada = clipper.recortar(linea.x0, linea.y0, linea.x1, linea.y1);
-
-        // Mostrar coordenadas originales
-        p1Coord.innerText = `(${linea.x0}, ${linea.y0})`;
-        p2Coord.innerText = `(${linea.x1}, ${linea.y1})`;
-
-        if (recortada) {
-            dibujarLinea(recortada.x0, recortada.y0, recortada.x1, recortada.y1, COLOR_RECORTE);
-            // Mostrar coordenadas de recorte
-            pc1Coord.innerText = `(${Math.round(recortada.x0)}, ${Math.round(recortada.y0)})`;
-            pc2Coord.innerText = `(${Math.round(recortada.x1)}, ${Math.round(recortada.y1)})`;
+        if (lineaRecortada) {
+            pc1Coord.innerText = `(${Math.round(lineaRecortada.x0)}, ${Math.round(lineaRecortada.y0)})`;
+            pc2Coord.innerText = `(${Math.round(lineaRecortada.x1)}, ${Math.round(lineaRecortada.y1)})`;
         } else {
             pc1Coord.innerText = "Fuera de rango";
             pc2Coord.innerText = "Fuera de rango";
         }
     }
+}
+
+function renderizar() {
+    const datos = obtenerDatosEscena();
+    actualizarCanvas(datos);
+    actualizarUI(datos);
 }
 
 function limpiarInfo() {
